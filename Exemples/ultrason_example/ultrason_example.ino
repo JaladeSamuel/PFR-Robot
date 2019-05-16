@@ -4,7 +4,7 @@
 
 /* Constantes pour les broches */
 const byte TRIGGER_PIN = 2; // Broche TRIGGER
-const byte ECHO_PIN = 3;    // Broche ECHO
+const byte ECHO_PIN = 4;    // Broche ECHO
  
 /* Constantes pour le timeout */
 const unsigned long MEASURE_TIMEOUT = 25000UL; // 25ms = ~8m à 340m/s
