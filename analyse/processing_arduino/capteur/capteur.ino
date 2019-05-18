@@ -52,10 +52,12 @@ void setup() {
  
 /** Fonction loop() */
 void loop() {
-  for(teta=0;teta<=180;teta+=5){
+  for(teta=40;teta<=120;teta+=5){
     servo1.write(teta); //angle final visé
+    delay(50);
     digitalWrite(TRIGGER_PIN, HIGH);
     delayMicroseconds(10);
+    delay(50);
     digitalWrite(TRIGGER_PIN, LOW);
     
     /* 2. Mesure le temps entre l'envoi de l'impulsion ultrasonique et son écho (si il existe) */
@@ -82,7 +84,8 @@ void loop() {
     /* Délai d'attente pour éviter d'afficher trop de résultats à la seconde */
     delay(100);
   }
-  servo1.write(0);
+  servo1.write(40);
+  delay(45);
 }
 
 /*

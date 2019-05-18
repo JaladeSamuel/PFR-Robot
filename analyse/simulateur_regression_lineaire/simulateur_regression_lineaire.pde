@@ -1,9 +1,9 @@
 import processing.serial.*;
 
 // Serial
-Serial myPort;  // créer l'objet sérial 
-String inString ="";  // Input string from serial port:
-int lf = 36;      // ASCII dollar 
+//Serial myPort;  // créer l'objet sérial 
+//String inString ="";  // Input string from serial port:
+//int lf = 36;      // ASCII dollar 
 
 String[] items = new String[2];
 float[] valeur_recu_temporaire = {0,0};
@@ -21,17 +21,20 @@ float pi = 3.1415926535;
 
 int compte_teta= 0;
 int robot_immobile = 0;
+int avtmp=40;
+
 float x1_ligne,x2_ligne,y1_ligne,y2_ligne = 0;
+
+
 // =======================================================
 void setup() {
   size(800,800);
   background(0);
   //1 cm = 1 pixel
-  
   // Serial Port
-  String portName = "COM3";  //Serial.list()[0];
-  myPort = new Serial(this, portName, 9600);
-  myPort.bufferUntil(lf);
+  //String portName = "COM3";  //Serial.list()[0];
+  //myPort = new Serial(this, portName, 9600);
+  //myPort.bufferUntil(lf);
   
 }
 
@@ -47,30 +50,20 @@ void draw() {
 }
 
 
-
-// =============== EVENTS ==================
-void serialEvent(Serial p){
-  try {
-    inString = p.readString(); 
-    //items = parseString(inString); // want to split String?  
-  }
-  catch (Exception e) {}
-}
-
-// ================= UTILS ========================
-String[] parseString(String serialString){
-  if (serialString != null)
-  {
-    serialString = serialString.replaceAll("(\\r|\\n)", "");
-    String items[] = splitTokens(serialString, " =");
-    return(items);
-  }
-  else return(null);  
-}
-
 void conversion_serial_en_float(){
-  String[] tmp_tableau = split(inString,',');
+  String[] tmp_tableau = new String[2];
+  tmp_tableau[1]= ""+avtmp;
+  avtmp+=5;
+  delay(160);
+    
+  if(avtmp>120){
+    print(" \n\n" +compte_teta+"\n\n");
+    avtmp=40;
+  }
+  tmp_tableau[0]=""+random(80,160);
 
+  
+  
   if(valeur_recu_temporaire[0] != float(tmp_tableau[0])){
     if(float(tmp_tableau[0])>384 || float(tmp_tableau[0]) <20){}
       // valeur non fiable car hors limite
@@ -97,7 +90,6 @@ void ajoute_nouveau_obstacles(){
   // convertir les valeurs polaires en cartésienne
   position_obstacle_x = position_robot_x + valeur_recu_temporaire[0]*cos(valeur_recu_temporaire[1]*(pi/180));
   position_obstacle_y = position_robot_y - valeur_recu_temporaire[0]*sin(valeur_recu_temporaire[1]*(pi/180));
-  print("\nPostion x :"+position_obstacle_y+" Décalage "+valeur_recu_temporaire[0]*sin(valeur_recu_temporaire[1]*(pi*180)));
   
   liste_position_obstacle = splice(liste_position_obstacle, position_obstacle_x, nb_elem_liste_position_obstacle);
   nb_elem_liste_position_obstacle++;
@@ -109,15 +101,16 @@ void affiche_obstacles(){
   for(int i=0;i<nb_elem_liste_position_obstacle-1;i+=2){
     fill(0,100,0);
     //point(liste_position_obstacle[i],liste_position_obstacle[i+1]);
-    circle(liste_position_obstacle[i],liste_position_obstacle[i+1],4);
+    circle(liste_position_obstacle[i],liste_position_obstacle[i+1],2);
   }
 }
 
 void regression_lineaire(){
-  if( compte_teta%17 == 0 ){ //robot_immobile == 0 && compte_teta%17 == 0
+  
+  if( compte_teta%17 ==0){ //robot_immobile == 0 && compte_teta>16
     float[] x = new float[compte_teta];
     float[] y = new float[compte_teta];
-    for(int i=0;i<compte_teta;i++){
+    for(int i=0;i<compte_teta-1;i++){
       // y
       y[i]=liste_position_obstacle[nb_elem_liste_position_obstacle-2*i-1];
       // x 
@@ -164,12 +157,14 @@ void regression_lineaire(){
       float[] y_droite = new float[0];
       for(int i=0;i<nombre_element_x;i++){
         y_droite = splice(y_droite,(x[i]*solution1+solution2),i);
-        print("\n ici "+y_droite[i]);
+        
       }
+      line(x[0],y_droite[0]+20,x[nombre_element_x-2],y_droite[nombre_element_x-2]+20);
       x1_ligne = x[0];
       x2_ligne = y_droite[0];
       y1_ligne = x[nombre_element_x-2];
       y2_ligne = y_droite[nombre_element_x-2];
+      print("\nLigne : " + x[1] +"  "+ y_droite[1] +"  "+ x[nombre_element_x-1] +"  "+ y_droite[nombre_element_x-1]);
     }
   }
 }
