@@ -1,5 +1,4 @@
 #include <Servo.h>
-#include <SharpIR.h>
 #define ir A0
 #define model 1080
 Servo myServoD, myServoG;
@@ -8,7 +7,7 @@ Servo myServoD, myServoG;
 /* Vitesse du son dans l'air en mm/us */
 const float SOUND_SPEED = 340.0 / 1000;
 
-/*CONSTANTE ULTRASON ROUGE*/
+/*CONSTANTE ULTRASON AVANT*/
 /**************************/
 /* Constantes pour les broches */
 const byte TRIGGER_PIN_ULTRASON_AVANT = 2; // Broche TRIGGER
@@ -39,15 +38,50 @@ float getDistanceUltrasonAvant() {
 }
 /**************************/
 
+/*CONSTANTE ULTRASON ROUGE*/
+/**************************/
+const int numOfReadings = 10;
+int readings[numOfReadings];
+int arrayIndex = 0;
+int total = 0;
+
+int echoPin = 7;
+int initPin = 4;
+
+unsigned long pulseTime = 0; //stores the pulse in MicroSeconds
+unsigned long distance = 0; //variable for storing the distance(cm)
+/**************************/
+
 /*FONCTION ULTRASON DROIT*/
 /**************************/
 void initUltrasonDroit() {
-   /* Initialise les broches */
+  pinMode(initPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  for (int thisReading = 0; thisReading < numOfReadings; thisReading++)
+  {
+    readings[thisReading] = 0;
+  }
 }
 
-float getDistanceUltrasonDroit() {
-  int distance_mm = 0;
-  return distance_mm;
+int getDistanceUltrasonDroit() {
+  digitalWrite(initPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(initPin, LOW);
+  
+  pulseTime = pulseIn(echoPin, HIGH);
+  distance = pulseTime / 58;
+  /*total = total - readings[arrayIndex];
+  readings[arrayIndex] = distance;
+  total = total + readings[arrayIndex];
+  arrayIndex = arrayIndex + 1;
+
+  if (arrayIndex >= numOfReadings)
+  {
+    arrayIndex = 0;
+  }*/
+
+  return distance * 10;
 }
 /**************************/
 
@@ -59,8 +93,8 @@ void initMoteur() {
 }
 
 void rotationGauche(){
-  myServoG.write(120);
-  myServoD.write(60);
+  myServoG.write(140);
+  myServoD.write(40);
 }
 
 void rotationDroite(){
@@ -69,13 +103,13 @@ void rotationDroite(){
 }
 
 void trajectoireGauche(){
-  myServoG.write(125);
-  myServoD.write(115);
+  myServoG.write(130);
+  myServoD.write(110);
 }
 
 void trajectoireDroite(){
-  myServoG.write(115);
-  myServoD.write(125);
+  myServoG.write(110);
+  myServoD.write(130);
 }
 
 void avancer(){
@@ -121,28 +155,36 @@ void setup() {
 void loop() {
   DISTANCE_MM_DROIT = getDistanceUltrasonDroit();
   DISTANCE_MM_AVANT = getDistanceUltrasonAvant();
-  if(DISTANCE_MM_DROIT < 1) {
+
+  Serial.print("Distance Droite: ");
+  Serial.print(DISTANCE_MM_DROIT);
+  Serial.print(" | Distance Avant: ");
+  Serial.print(DISTANCE_MM_AVANT);
+  
+  if (DISTANCE_MM_AVANT < 1) {
+    DISTANCE_MM_AVANT = 8000;
+  }
+  if (DISTANCE_MM_DROIT < 1) {
     DISTANCE_MM_DROIT = 8000;
   }
-  Serial.println(DISTANCE_MM_DROIT);
 
   switch(ETAT_PRESENT) {
     case 0 : 
        arreter();
-       if(DISTANCE_MM_DROIT > 500 && DISTANCE_MM_DROIT > 300) {
+       if(DISTANCE_MM_AVANT > 500 && DISTANCE_MM_DROIT > 300) {
         ETAT_SUIVANT = 3;
-       } else if(DISTANCE_MM_DROIT > 500 && DISTANCE_MM_DROIT < 200){
+       } else if(DISTANCE_MM_AVANT > 500 && DISTANCE_MM_DROIT < 200){
         ETAT_SUIVANT = 5;
-       } else if(DISTANCE_MM_DROIT > 500 ) {
+       } else if(DISTANCE_MM_AVANT > 500 ) {
         ETAT_SUIVANT = 1;
        } else {
         ETAT_SUIVANT = 0;
        }
-       Serial.println(" Etat arreter");
+       Serial.println(" | Etat arreter");
        break;
     case 1 : 
       avancer();
-      if(DISTANCE_MM_DROIT < 500){
+      if(DISTANCE_MM_AVANT < 500){
         ETAT_SUIVANT = 4;
       } else if (DISTANCE_MM_DROIT > 300) {
         ETAT_SUIVANT = 3; 
@@ -151,42 +193,42 @@ void loop() {
       } else {
         ETAT_SUIVANT = 1;
       }
-      Serial.println(" Etat avancer");
+      Serial.println(" | Etat avancer");
       break;
     case 2 : 
       reculer();
-      Serial.println(" Etat reculer");
+      Serial.println(" | Etat reculer");
       break;
     case 3 : 
       trajectoireDroite();
-      if(DISTANCE_MM_DROIT < 500 ) {
+      if(DISTANCE_MM_AVANT < 500 ) {
         ETAT_SUIVANT = 4;
       } else if(DISTANCE_MM_DROIT < 300){
         ETAT_SUIVANT = 5;
       } else {
         ETAT_SUIVANT = 3;
       }
-      Serial.println(" Etat trajectoireDroite");
+      Serial.println(" | Etat trajectoireDroite");
       break;
     case 4 : 
        rotationGauche();
-       if(DISTANCE_MM_DROIT > 500){
+       if(DISTANCE_MM_AVANT > 500){
         ETAT_SUIVANT = 1; 
        } else {
         ETAT_SUIVANT = 4;
        }
-       Serial.println(" Etat rotationGauche");
+       Serial.println(" | Etat rotationGauche");
        break;
     case 5 : 
        trajectoireGauche();
-       if(DISTANCE_MM_DROIT < 500){
+       if(DISTANCE_MM_AVANT < 500){
         ETAT_SUIVANT = 4; 
        } else if(DISTANCE_MM_DROIT > 200){
         ETAT_SUIVANT = 1;
        } else {
         ETAT_SUIVANT = 5;
        }
-       Serial.println(" Etat trajectoireGauche");
+       Serial.println(" | Etat trajectoireGauche");
        break;
   }
   
