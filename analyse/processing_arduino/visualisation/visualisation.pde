@@ -7,6 +7,7 @@ int lf = 36;      // ASCII dollar
 
 String[] items = new String[2];
 float[] valeur_recu_temporaire = {0,0};
+
 float[] liste_position_obstacle = new float[0]; 
 int nb_elem_liste_position_obstacle = 0; 
 
@@ -22,6 +23,7 @@ float pi = 3.1415926535;
 int compte_teta= 0;
 int robot_immobile = 0;
 float x1_ligne,x2_ligne,y1_ligne,y2_ligne = 0;
+float sauveur=0;
 // =======================================================
 void setup() {
   size(800,800);
@@ -70,7 +72,6 @@ String[] parseString(String serialString){
 
 void conversion_serial_en_float(){
   String[] tmp_tableau = split(inString,',');
-
   if(valeur_recu_temporaire[0] != float(tmp_tableau[0])){
     if(float(tmp_tableau[0])>384 || float(tmp_tableau[0]) <20){}
       // valeur non fiable car hors limite
@@ -78,8 +79,9 @@ void conversion_serial_en_float(){
       valeur_recu_temporaire[0] = float(tmp_tableau[0]); //distance
     }
   }
-
+  if(tmp_tableau[1] !=null){}
   if(valeur_recu_temporaire[1] != float(tmp_tableau[1])){
+    
     valeur_recu_temporaire[1] = float(tmp_tableau[1]); //teta
     compte_teta++;
   }
@@ -95,14 +97,17 @@ void affiche_robot(){
 
 void ajoute_nouveau_obstacles(){
   // convertir les valeurs polaires en cartésienne
-  position_obstacle_x = position_robot_x + valeur_recu_temporaire[0]*cos(valeur_recu_temporaire[1]*(pi/180));
-  position_obstacle_y = position_robot_y - valeur_recu_temporaire[0]*sin(valeur_recu_temporaire[1]*(pi/180));
-  print("\nPostion x :"+position_obstacle_y+" Décalage "+valeur_recu_temporaire[0]*sin(valeur_recu_temporaire[1]*(pi*180)));
-  
-  liste_position_obstacle = splice(liste_position_obstacle, position_obstacle_x, nb_elem_liste_position_obstacle);
-  nb_elem_liste_position_obstacle++;
-  liste_position_obstacle = splice(liste_position_obstacle, position_obstacle_y, nb_elem_liste_position_obstacle);
-  nb_elem_liste_position_obstacle++;
+  if(valeur_recu_temporaire[1] != sauveur){
+    sauveur= valeur_recu_temporaire[1];
+    position_obstacle_x = position_robot_x + valeur_recu_temporaire[0]*cos(valeur_recu_temporaire[1]*(pi/180));
+    position_obstacle_y = position_robot_y - valeur_recu_temporaire[0]*sin(valeur_recu_temporaire[1]*(pi/180));
+    //print("\nPostion x :"+position_obstacle_y+" Décalage "+valeur_recu_temporaire[0]*sin(valeur_recu_temporaire[1]*(pi*180)));
+    
+    liste_position_obstacle = splice(liste_position_obstacle, position_obstacle_x, nb_elem_liste_position_obstacle);
+    nb_elem_liste_position_obstacle++;
+    liste_position_obstacle = splice(liste_position_obstacle, position_obstacle_y, nb_elem_liste_position_obstacle);
+    nb_elem_liste_position_obstacle++;
+  }
 }
 
 void affiche_obstacles(){
@@ -117,11 +122,11 @@ void regression_lineaire(){
   if( compte_teta%17 == 0 ){ //robot_immobile == 0 && compte_teta%17 == 0
     float[] x = new float[compte_teta];
     float[] y = new float[compte_teta];
-    for(int i=0;i<compte_teta;i++){
+    for(int i=0;i<compte_teta-1;i++){
       // y
-      y[i]=liste_position_obstacle[nb_elem_liste_position_obstacle-2*i-1];
+      y[i]=liste_position_obstacle[(nb_elem_liste_position_obstacle-(2*i)-1)];
       // x 
-      x[i]=liste_position_obstacle[nb_elem_liste_position_obstacle-2*i-2];
+      x[i]=liste_position_obstacle[nb_elem_liste_position_obstacle-(2*i)-2];
     }
     int nombre_element_x = compte_teta;
     float somme_x = 0;
@@ -158,18 +163,23 @@ void regression_lineaire(){
       float[] B = {somme_y,somme_xy}; //a voir comme une matrice colonne
       float solution1 = A_inverse[0]*B[0] + A_inverse[1]*B[1];
       float solution2 = A_inverse[2]*B[0] + A_inverse[3]*B[1];
-      print("\n"+solution1);
-      print("\n"+solution2);
+      //print("\n"+solution1);
+      //print("\n"+solution2);
       
       float[] y_droite = new float[0];
       for(int i=0;i<nombre_element_x;i++){
         y_droite = splice(y_droite,(x[i]*solution1+solution2),i);
-        print("\n ici "+y_droite[i]);
+        //print("\n ici "+y_droite[i]);
       }
       x1_ligne = x[0];
       x2_ligne = y_droite[0];
       y1_ligne = x[nombre_element_x-2];
       y2_ligne = y_droite[nombre_element_x-2];
+      for(int i=0;i<nombre_element_x-2;i++){
+        //print("\n "+i+": "+x[i]+" "+y_droite[i]);
+      }
+      print("\nLigne : " + x[0] +"  "+ y_droite[0] +"  "+ x[nombre_element_x-1] +"  "+ y_droite[nombre_element_x-1]);
+
     }
   }
 }

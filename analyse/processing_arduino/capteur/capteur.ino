@@ -1,24 +1,4 @@
-/* PARTIE SERVO 
-#include <Servo.h>
-Servo servo1;
-int teta=0;
 
-void setup() {
-  // put your setup code here, to run once:
-  servo1.attach(9);
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-  for(teta=0;teta<=180;teta+=1){
-    servo1.write(teta); //angle final visé
-    delay(45);
-  }  
-  for(teta=180;teta>=0;teta-=1){
-    servo1.write(teta);
-    delay(45);
-  }
-}
 
 ///////////////////////////////////
 */
@@ -88,23 +68,3 @@ void loop() {
   delay(45);
 }
 
-/*
-  Read Value 
-*/
-/*
-// the setup routine runs once when you press reset:
-void setup() {
-  // initialize serial communication at 9600 bits per second:
-  Serial.begin(9600);
-}
-
-// the loop routine runs over and over again forever:
-void loop() {
-  // read the input from analog pin 0:
-  int sensorValue = analogRead(A0);
-  // print out the value you read:
-  Serial.print("Value=");
-  Serial.println(sensorValue);
-  delay(10);        // delay in between reads for stability
-}
-*/
