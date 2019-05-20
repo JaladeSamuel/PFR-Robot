@@ -94,8 +94,8 @@ void initMoteur() {
 }
 
 void rotationGauche(){
-  myServoG.write(140);
-  myServoD.write(40);
+  myServoG.write(133);
+  myServoD.write(50);
 }
 
 void rotationDroite(){
@@ -169,91 +169,92 @@ void loop() {
     DISTANCE_MM_DROIT = 8000;
   }
 
+  if (DISTANCE_MM_AVANT > 1500) {
+    vitesse = 125;
+  } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_AVANT < 1500) {
+    vitesse = 120;
+  }
+
   switch(ETAT_PRESENT) {
-    case 0 : 
-       arreter();
-       if(DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 400) {
+    case 0: 
+      arreter();
+      
+      if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 400) {
         ETAT_SUIVANT = 3;
-       } else if(DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT < 300){
+      } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT < 300){
         ETAT_SUIVANT = 5;
-       } else if(DISTANCE_MM_AVANT > 1500 ) {
-        vitesse=130;
+      } else if (DISTANCE_MM_AVANT > 1500 ) {
         ETAT_SUIVANT = 1;
-        
-       }
-       else if(DISTANCE_MM_AVANT > 600 && DISTANCE_MM_AVANT <1500 ) {
-        vitesse=120;
-        ETAT_SUIVANT = 1;
-        }
-       else {
+      } else {
         ETAT_SUIVANT = 0;
-       }
-       Serial.println(" | Etat arreter");
-       break;
-    case 1 : 
+      }
+      
+      Serial.println(" | Etat arreter");
+      break;
+      
+    case 1: 
       avancer(vitesse);
+      
       if(DISTANCE_MM_AVANT < 600){
         ETAT_SUIVANT = 4;
       } else if (DISTANCE_MM_DROIT > 400) {
         ETAT_SUIVANT = 3; 
       } else if (DISTANCE_MM_DROIT < 300) {
-        ETAT_SUIVANT = 5; 
-      } else if(DISTANCE_MM_AVANT > 1500 ) {
-        vitesse=130;
-      } else if(DISTANCE_MM_AVANT > 600 && DISTANCE_MM_AVANT <1500 ) {
-        vitesse=120;
+        ETAT_SUIVANT = 5;
       } else {
         ETAT_SUIVANT = 1;
       }
+      
       Serial.println(" | Etat avancer");
       break;
+      
     case 2 : 
       reculer();
       Serial.println(" | Etat reculer");
       break;
-    case 3 : 
+      
+    case 3: 
       trajectoireDroite(vitesse);
+      
       if(DISTANCE_MM_AVANT < 600 ) {
         ETAT_SUIVANT = 4;
       } else if(DISTANCE_MM_DROIT < 400){
         ETAT_SUIVANT = 5;
-      } 
-       else if(DISTANCE_MM_AVANT>1500) {
-        vitesse=130;
-        }
-        else if(DISTANCE_MM_AVANT > 600 && DISTANCE_MM_AVANT <1500 ) {
-        vitesse=120;}
-      else {
+      } else {
         ETAT_SUIVANT = 3;
       }
       Serial.println(" | Etat trajectoireDroite");
       break;
-    case 4 : 
-       rotationGauche();
-       if(DISTANCE_MM_AVANT > 600){
-        ETAT_SUIVANT = 1; 
-       }else {
-        ETAT_SUIVANT = 4;
-       }
-       Serial.println(" | Etat rotationGauche");
-       break;
-    case 5 : 
-       trajectoireGauche(vitesse);
-       if(DISTANCE_MM_AVANT < 600){
-        ETAT_SUIVANT = 4; 
-       }
-        else if(DISTANCE_MM_AVANT>1500) {
-        vitesse=130;
-        }
-        else if(DISTANCE_MM_AVANT > 600 && DISTANCE_MM_AVANT <1500 ) {
-        vitesse=120;}
-       else if(DISTANCE_MM_DROIT > 300){
+      
+    case 4: 
+      rotationGauche();
+      
+      if (DISTANCE_MM_AVANT > 600) {
         ETAT_SUIVANT = 1;
-       } else {
+      } else {
+        ETAT_SUIVANT = 4;
+      }
+      
+      Serial.println(" | Etat rotationGauche");
+      break;
+      
+    case 5:
+      trajectoireGauche(vitesse);
+
+      if (DISTANCE_MM_AVANT < 600){
+        ETAT_SUIVANT = 4; 
+      } else if (DISTANCE_MM_DROIT > 300){
+        ETAT_SUIVANT = 1;
+      } else {
         ETAT_SUIVANT = 5;
-       }
-       Serial.println(" | Etat trajectoireGauche");
-       break;
+      }
+      
+      Serial.println(" | Etat trajectoireGauche");
+      break;
+
+    case 6:
+
+      break;
   }
   
   ETAT_PRESENT = ETAT_SUIVANT;
