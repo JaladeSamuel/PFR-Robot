@@ -3,10 +3,7 @@
 #define model 1080
 Servo myServoD, myServoG;
 
-/* CONSTANTES GLOBALES */
-int vitesse = 0;
-int BORNE_MAX_SUIVI = 350;
-int BORNE_MIN_SUIVI = 320;
+
 
 /* Vitesse du son dans l'air en mm/us */
 const float SOUND_SPEED = 340.0 / 1000;
@@ -74,28 +71,30 @@ float getDistanceUltrasonDroit() {
 /*FONCTION MOTEUR*/
 /**************************/
 void initMoteur() {
-  myServoD.attach(5);
-  myServoG.attach(6);
+  myServoD.attach(6);
+  myServoG.attach(5);
 }
 
 void rotationGauche(){
-  myServoG.write(133);
-  myServoD.write(50);
+  myServoG.write(50);
+  myServoD.write(133);
 }
 
 void rotationDroite(){
-  myServoG.write(98);
-  myServoD.write(135);
+/*  myServoG.write(135);
+  myServoD.write(98);*/
+  myServoG.write(135);
+  myServoD.write(104);
 }
 
 void trajectoireGauche(int vitesse){
-  myServoG.write(vitesse);
-  myServoD.write(vitesse - 15);
+  myServoG.write(vitesse - 23);
+  myServoD.write(vitesse);
 }
 
 void trajectoireDroite(int vitesse){
-  myServoG.write(vitesse - 15);
-  myServoD.write(vitesse);
+  myServoG.write(vitesse);
+  myServoD.write(vitesse - 18);
 }
 
 void avancer(int vitesse){
@@ -117,6 +116,10 @@ void arreter(){
 
 /********MAIN*********/
 /*********************/
+/* CONSTANTES GLOBALES */
+int vitesse = 0;
+int BORNE_MAX_SUIVI = 145;
+int BORNE_MIN_SUIVI = 140;
 unsigned int ETAT_PRESENT = 1;
 unsigned int ETAT_SUIVANT = 0;
 int DISTANCE_MM_AVANT = 0;
@@ -165,7 +168,7 @@ void loop() {
     case 0: 
       arreter();
 
-      if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 400) {
         ETAT_SUIVANT = 3;
@@ -183,7 +186,7 @@ void loop() {
     case 1: 
       avancer(vitesse);
       
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT < 600){
         ETAT_SUIVANT = 4;
@@ -206,7 +209,7 @@ void loop() {
     case 3: 
       trajectoireDroite(vitesse);
       
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT < 600) {
         ETAT_SUIVANT = 4;
@@ -233,7 +236,7 @@ void loop() {
     case 5:
       trajectoireGauche(vitesse);
 
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT < 600){
         ETAT_SUIVANT = 4; 
