@@ -3,10 +3,7 @@
 #define model 1080
 Servo myServoD, myServoG;
 
-/* CONSTANTES GLOBALES */
-int vitesse = 0;
-int BORNE_MAX_SUIVI = 350;
-int BORNE_MIN_SUIVI = 320;
+
 
 /* Vitesse du son dans l'air en mm/us */
 const float SOUND_SPEED = 340.0 / 1000;
@@ -20,6 +17,7 @@ const byte ECHO_PIN_ULTRASON_AVANT = 3;    // Broche ECHO
 const unsigned long MEASURE_TIMEOUT = 25000UL; // 25ms = ~8m à 340m/s
 /**************************/
 
+/**************************/
 /*FONCTION ULTRASON AVANT*/
 /**************************/
 void initUltrasonAvant() {
@@ -28,7 +26,10 @@ void initUltrasonAvant() {
   digitalWrite(TRIGGER_PIN_ULTRASON_AVANT, LOW); // La broche TRIGGER doit être à LOW au repos
   pinMode(ECHO_PIN_ULTRASON_AVANT, INPUT);
 }
-
+/*
+ * Calcule et donne la distance capturé par le capteur avant
+ * return float
+ */
 float getDistanceUltrasonAvant() {
   /* 1. Lance une mesure de distance en envoyant une impulsion HIGH de 10µs sur la broche TRIGGER */
   digitalWrite(TRIGGER_PIN_ULTRASON_AVANT, HIGH);
@@ -42,6 +43,7 @@ float getDistanceUltrasonAvant() {
 }
 /**************************/
 
+/**************************/
 /*CONSTANTE ULTRASON ROUGE*/
 /**************************/
 /* Constantes pour les broches */
@@ -49,6 +51,7 @@ const byte TRIGGER_PIN_ULTRASON_DROIT = 4; // Broche TRIGGER
 const byte ECHO_PIN_ULTRASON_DROIT = 7;    // Broche ECHO
 /**************************/
 
+/**************************/
 /*FONCTION ULTRASON DROIT*/
 /**************************/
 void initUltrasonDroit() {
@@ -58,6 +61,10 @@ void initUltrasonDroit() {
   pinMode(ECHO_PIN_ULTRASON_DROIT, INPUT);
 }
 
+/*
+ * Calcule et donne la distance capturé par le capteur droit
+ * return float
+ */
 float getDistanceUltrasonDroit() {
   /* 1. Lance une mesure de distance en envoyant une impulsion HIGH de 10µs sur la broche TRIGGER */
   digitalWrite(TRIGGER_PIN_ULTRASON_DROIT, HIGH);
@@ -71,31 +78,33 @@ float getDistanceUltrasonDroit() {
 }
 /**************************/
 
+/**************************/
 /*FONCTION MOTEUR*/
 /**************************/
+//Affectation des commande moteur aux pins
 void initMoteur() {
-  myServoD.attach(5);
-  myServoG.attach(6);
+  myServoD.attach(6);
+  myServoG.attach(5);
 }
 
 void rotationGauche(){
-  myServoG.write(133);
-  myServoD.write(50);
+  myServoG.write(50);
+  myServoD.write(133);
 }
 
 void rotationDroite(){
-  myServoG.write(98);
-  myServoD.write(135);
+  myServoG.write(135);
+  myServoD.write(104);
 }
 
 void trajectoireGauche(int vitesse){
-  myServoG.write(vitesse);
-  myServoD.write(vitesse - 15);
+  myServoG.write(vitesse - 23);
+  myServoD.write(vitesse);
 }
 
 void trajectoireDroite(int vitesse){
-  myServoG.write(vitesse - 15);
-  myServoD.write(vitesse);
+  myServoG.write(vitesse);
+  myServoD.write(vitesse - 18);
 }
 
 void avancer(int vitesse){
@@ -117,20 +126,29 @@ void arreter(){
 
 /********MAIN*********/
 /*********************/
+/* CONSTANTES GLOBALES */
+int vitesse = 0;
+//Borne de distance entre le mur et le robot
+int BORNE_MAX_SUIVI = 145;
+int BORNE_MIN_SUIVI = 140;
+
 unsigned int ETAT_PRESENT = 1;
 unsigned int ETAT_SUIVANT = 0;
+//Initialisation des variables pour les capteurs
 int DISTANCE_MM_AVANT = 0;
 int DISTANCE_MM_DROIT = 0;
 
 /*
  * 0 = arreter()
  * 1 = avancer()
- * 2 = reculer()
  * 3 = trajectoireDroite()
  * 4 = rotationGauche()
  * 5 = trajectoireGauche()
  * 6 = rotationDroite()
  */ 
+
+/*SETUP*/
+//Initialisation
 void setup() {
   initMoteur();
   initUltrasonAvant();
@@ -140,14 +158,21 @@ void setup() {
 
 
 void loop() {
+  /*
+   * Récupération des valeurs capturé par les capteurs
+   */
   DISTANCE_MM_DROIT = getDistanceUltrasonDroit();
   DISTANCE_MM_AVANT = getDistanceUltrasonAvant();
 
+  //Affichage
   Serial.print("Distance Droite: ");
   Serial.print(DISTANCE_MM_DROIT);
   Serial.print(" | Distance Avant: ");
   Serial.print(DISTANCE_MM_AVANT);
-  
+
+  /*
+   * Si la distance et <= à 1 on considère qu'une très grande distance est mesuré
+   */
   if (DISTANCE_MM_AVANT <= 1) {
     DISTANCE_MM_AVANT = 8000;
   }
@@ -155,17 +180,20 @@ void loop() {
     DISTANCE_MM_DROIT = 8000;
   }
 
+  /*
+   * Réduit la vitesse du robot si il détecte un mur en face de lui
+   */
   if (DISTANCE_MM_AVANT > 1500) {
     vitesse = 125;
   } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_AVANT < 1500) {
     vitesse = 120;
   }
 
+  //Implémentation de la machien à état
   switch(ETAT_PRESENT) {
-    case 0: 
+    case 0: // Arreté
       arreter();
-
-      if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 400) {
         ETAT_SUIVANT = 3;
@@ -180,10 +208,10 @@ void loop() {
       Serial.println(" | Etat arreter");
       break;
       
-    case 1: 
+    case 1: // Avance
       avancer(vitesse);
       
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT < 600){
         ETAT_SUIVANT = 4;
@@ -198,15 +226,10 @@ void loop() {
       Serial.println(" | Etat avancer");
       break;
       
-    case 2 : 
-      reculer();
-      Serial.println(" | Etat reculer");
-      break;
-      
-    case 3: 
+    case 3:  // Tourne légèrement vers la droite
       trajectoireDroite(vitesse);
       
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT < 600) {
         ETAT_SUIVANT = 4;
@@ -218,7 +241,7 @@ void loop() {
       Serial.println(" | Etat trajectoireDroite");
       break;
       
-    case 4: // Rotation Gauche
+    case 4: // Rotation  vers la gauche
       rotationGauche();
       
       if (DISTANCE_MM_AVANT > 600) {
@@ -230,10 +253,10 @@ void loop() {
       Serial.println(" | Etat rotationGauche");
       break;
       
-    case 5:
+    case 5: // Tourne légèrement vers la gauche
       trajectoireGauche(vitesse);
 
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 1500) {
+      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
         ETAT_SUIVANT = 6;
       } else if (DISTANCE_MM_AVANT < 600){
         ETAT_SUIVANT = 4; 
@@ -246,7 +269,7 @@ void loop() {
       Serial.println(" | Etat trajectoireGauche");
       break;
 
-    case 6:
+    case 6: // Rotation vers la droite
       rotationDroite();
 
       if (DISTANCE_MM_AVANT < 600) {
@@ -261,6 +284,6 @@ void loop() {
       break;
   }
   
-  ETAT_PRESENT = ETAT_SUIVANT;
+  ETAT_PRESENT = ETAT_SUIVANT; // Affectation de l'état suivant à l'état présent
   delay(100);
 }
