@@ -98,13 +98,13 @@ void rotationDroite(){
 }
 
 void trajectoireGauche(int vitesse){
-  myServoG.write(vitesse - 23);
+  myServoG.write(vitesse - 13);
   myServoD.write(vitesse);
 }
 
 void trajectoireDroite(int vitesse){
   myServoG.write(vitesse);
-  myServoD.write(vitesse - 18);
+  myServoD.write(vitesse - 11);
 }
 
 void avancer(int vitesse){
@@ -129,8 +129,8 @@ void arreter(){
 /* CONSTANTES GLOBALES */
 int vitesse = 0;
 //Borne de distance entre le mur et le robot
-int BORNE_MAX_SUIVI = 145;
-int BORNE_MIN_SUIVI = 140;
+int BORNE_MAX_SUIVI = 230;
+int BORNE_MIN_SUIVI = 225;
 
 unsigned int ETAT_PRESENT = 1;
 unsigned int ETAT_SUIVANT = 0;
@@ -191,7 +191,7 @@ void loop() {
   }
 
   // Lecture d'un message envoyé par bluetooth
-  int messageBluetooth;
+  int messageBluetooth = 48;
   if(Serial.available()) {
     messageBluetooth = Serial.read();
     Serial1.print(messageBluetooth);
@@ -206,7 +206,7 @@ void loop() {
     switch(ETAT_PRESENT) {
       case 0: // Arreté
         arreter();
-        if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 800) {
+        if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 650) {
           ETAT_SUIVANT = 6;
         } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 400) {
           ETAT_SUIVANT = 3;
@@ -224,7 +224,7 @@ void loop() {
       case 1: // Avance
         avancer(vitesse);
         
-        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
+        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 650) {
           ETAT_SUIVANT = 6;
         } else if (DISTANCE_MM_AVANT < 600){
           ETAT_SUIVANT = 4;
@@ -242,7 +242,7 @@ void loop() {
       case 3:  // Tourne légèrement vers la droite
         trajectoireDroite(vitesse);
         
-        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
+        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 650) {
           ETAT_SUIVANT = 6;
         } else if (DISTANCE_MM_AVANT < 600) {
           ETAT_SUIVANT = 4;
@@ -269,7 +269,7 @@ void loop() {
       case 5: // Tourne légèrement vers la gauche
         trajectoireGauche(vitesse);
   
-        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
+        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 650) {
           ETAT_SUIVANT = 6;
         } else if (DISTANCE_MM_AVANT < 600){
           ETAT_SUIVANT = 4; 
