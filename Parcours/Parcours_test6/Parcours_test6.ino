@@ -112,9 +112,9 @@ void avancer(int vitesse){
   myServoD.write(vitesse);
 }
 
-void reculer(){
-  myServoG.write(70);
-  myServoD.write(70);
+void reculer(int vitesse){
+  myServoG.write(vitesse);
+  myServoD.write(vitesse);
 }
 
 void arreter(){
@@ -154,6 +154,7 @@ void setup() {
   initUltrasonAvant();
   initUltrasonDroit();
   Serial.begin(9600);
+  Serial1.begin(9600);
 }
 
 
@@ -189,99 +190,128 @@ void loop() {
     vitesse = 120;
   }
 
-  //Implémentation de la machien à état
-  switch(ETAT_PRESENT) {
-    case 0: // Arreté
-      arreter();
-      if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 800) {
-        ETAT_SUIVANT = 6;
-      } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 400) {
-        ETAT_SUIVANT = 3;
-      } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT < 300){
-        ETAT_SUIVANT = 5;
-      } else if (DISTANCE_MM_AVANT > 1500 ) {
-        ETAT_SUIVANT = 1;
-      } else {
-        ETAT_SUIVANT = 0;
-      }
-      
-      Serial.println(" | Etat arreter");
-      break;
-      
-    case 1: // Avance
-      avancer(vitesse);
-      
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
-        ETAT_SUIVANT = 6;
-      } else if (DISTANCE_MM_AVANT < 600){
-        ETAT_SUIVANT = 4;
-      } else if (DISTANCE_MM_DROIT > BORNE_MAX_SUIVI) {
-        ETAT_SUIVANT = 3; // trajectoire droite
-      } else if (DISTANCE_MM_DROIT < BORNE_MIN_SUIVI) {
-        ETAT_SUIVANT = 5; // trajectoire gauche
-      } else {
-        ETAT_SUIVANT = 1;
-      }
-      
-      Serial.println(" | Etat avancer");
-      break;
-      
-    case 3:  // Tourne légèrement vers la droite
-      trajectoireDroite(vitesse);
-      
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
-        ETAT_SUIVANT = 6;
-      } else if (DISTANCE_MM_AVANT < 600) {
-        ETAT_SUIVANT = 4;
-      } else if (DISTANCE_MM_DROIT < BORNE_MAX_SUIVI) {
-        ETAT_SUIVANT = 5;
-      } else {
-        ETAT_SUIVANT = 3;
-      }
-      Serial.println(" | Etat trajectoireDroite");
-      break;
-      
-    case 4: // Rotation  vers la gauche
-      rotationGauche();
-      
-      if (DISTANCE_MM_AVANT > 600) {
-        ETAT_SUIVANT = 1;
-      } else {
-        ETAT_SUIVANT = 4;
-      }
-      
-      Serial.println(" | Etat rotationGauche");
-      break;
-      
-    case 5: // Tourne légèrement vers la gauche
-      trajectoireGauche(vitesse);
+  // Lecture d'un message envoyé par bluetooth
+  int messageBluetooth;
+  if(Serial.available()) {
+    messageBluetooth = Serial.read();
+    Serial1.print(messageBluetooth);
+  }
+  if (Serial1.available()) {
+    messageBluetooth = Serial1.read();
+    Serial.println(messageBluetooth);    
+  }
 
-      if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
-        ETAT_SUIVANT = 6;
-      } else if (DISTANCE_MM_AVANT < 600){
-        ETAT_SUIVANT = 4; 
-      } else if (DISTANCE_MM_DROIT > BORNE_MIN_SUIVI){
-        ETAT_SUIVANT = 1;
-      } else {
-        ETAT_SUIVANT = 5;
-      }
-      
-      Serial.println(" | Etat trajectoireGauche");
-      break;
-
-    case 6: // Rotation vers la droite
-      rotationDroite();
-
-      if (DISTANCE_MM_AVANT < 600) {
-        ETAT_SUIVANT = 4;
-      } else if (DISTANCE_MM_AVANT < 4000 || DISTANCE_MM_DROIT < 1000) {
-        ETAT_SUIVANT = 1;
-      } else {
-        ETAT_SUIVANT = 6;
-      }
-      
-      Serial.println(" | Etat rotation Droite ");
-      break;
+  if (messageBluetooth == 48) {
+    //Implémentation de la machine à état
+    switch(ETAT_PRESENT) {
+      case 0: // Arreté
+        arreter();
+        if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 800) {
+          ETAT_SUIVANT = 6;
+        } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT > 400) {
+          ETAT_SUIVANT = 3;
+        } else if (DISTANCE_MM_AVANT > 600 && DISTANCE_MM_DROIT < 300){
+          ETAT_SUIVANT = 5;
+        } else if (DISTANCE_MM_AVANT > 1500 ) {
+          ETAT_SUIVANT = 1;
+        } else {
+          ETAT_SUIVANT = 0;
+        }
+        
+        Serial.println(" | Etat arreter");
+        break;
+        
+      case 1: // Avance
+        avancer(vitesse);
+        
+        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
+          ETAT_SUIVANT = 6;
+        } else if (DISTANCE_MM_AVANT < 600){
+          ETAT_SUIVANT = 4;
+        } else if (DISTANCE_MM_DROIT > BORNE_MAX_SUIVI) {
+          ETAT_SUIVANT = 3; // trajectoire droite
+        } else if (DISTANCE_MM_DROIT < BORNE_MIN_SUIVI) {
+          ETAT_SUIVANT = 5; // trajectoire gauche
+        } else {
+          ETAT_SUIVANT = 1;
+        }
+        
+        Serial.println(" | Etat avancer");
+        break;
+        
+      case 3:  // Tourne légèrement vers la droite
+        trajectoireDroite(vitesse);
+        
+        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
+          ETAT_SUIVANT = 6;
+        } else if (DISTANCE_MM_AVANT < 600) {
+          ETAT_SUIVANT = 4;
+        } else if (DISTANCE_MM_DROIT < BORNE_MAX_SUIVI) {
+          ETAT_SUIVANT = 5;
+        } else {
+          ETAT_SUIVANT = 3;
+        }
+        Serial.println(" | Etat trajectoireDroite");
+        break;
+        
+      case 4: // Rotation  vers la gauche
+        rotationGauche();
+        
+        if (DISTANCE_MM_AVANT > 600) {
+          ETAT_SUIVANT = 1;
+        } else {
+          ETAT_SUIVANT = 4;
+        }
+        
+        Serial.println(" | Etat rotationGauche");
+        break;
+        
+      case 5: // Tourne légèrement vers la gauche
+        trajectoireGauche(vitesse);
+  
+        if (DISTANCE_MM_AVANT > 300 && DISTANCE_MM_DROIT > 800) {
+          ETAT_SUIVANT = 6;
+        } else if (DISTANCE_MM_AVANT < 600){
+          ETAT_SUIVANT = 4; 
+        } else if (DISTANCE_MM_DROIT > BORNE_MIN_SUIVI){
+          ETAT_SUIVANT = 1;
+        } else {
+          ETAT_SUIVANT = 5;
+        }
+        
+        Serial.println(" | Etat trajectoireGauche");
+        break;
+  
+      case 6: // Rotation vers la droite
+        rotationDroite();
+  
+        if (DISTANCE_MM_AVANT < 600) {
+          ETAT_SUIVANT = 4;
+        } else if (DISTANCE_MM_AVANT < 4000 || DISTANCE_MM_DROIT < 1000) {
+          ETAT_SUIVANT = 1;
+        } else {
+          ETAT_SUIVANT = 6;
+        }
+        
+        Serial.println(" | Etat rotation Droite ");
+        break;
+    }
+  } else if (messageBluetooth == 49) {
+    avancer(118);
+  } else if (messageBluetooth == 50) {
+    avancer(127);
+  } else if (messageBluetooth == 54) {
+    reculer(118);
+  } else if (messageBluetooth == 51) {
+    rotationGauche();
+  } else if (messageBluetooth == 52) {
+   rotationDroite();
+  } else if (messageBluetooth == 53) {
+    arreter();
+  } else if (messageBluetooth == 55) {
+    trajectoireGauche(130);
+  } else if (messageBluetooth == 56) {
+    trajectoireDroite(130);
   }
   
   ETAT_PRESENT = ETAT_SUIVANT; // Affectation de l'état suivant à l'état présent
