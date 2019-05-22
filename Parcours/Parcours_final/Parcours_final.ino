@@ -128,7 +128,7 @@ void arreter(){
 /*********************/
 /* CONSTANTES GLOBALES */
 int vitesse = 0;
-int messageBluetooth = 48;
+int messageBluetooth = 53;
 
 //Borne de distance entre le mur et le robot
 int BORNE_MAX_SUIVI = 230;
@@ -302,11 +302,11 @@ void loop() {
   } else if (messageBluetooth == 50) {
     avancer(127);
   } else if (messageBluetooth == 54) {
-    reculer(118);
+    reculer(70);
   } else if (messageBluetooth == 51) {
     rotationGauche();
   } else if (messageBluetooth == 52) {
-   rotationDroite();
+    rotationDroite();
   } else if (messageBluetooth == 53) {
     arreter();
   } else if (messageBluetooth == 55) {
