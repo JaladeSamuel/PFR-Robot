@@ -128,6 +128,8 @@ void arreter(){
 /*********************/
 /* CONSTANTES GLOBALES */
 int vitesse = 0;
+int messageBluetooth = 48;
+
 //Borne de distance entre le mur et le robot
 int BORNE_MAX_SUIVI = 230;
 int BORNE_MIN_SUIVI = 225;
@@ -191,7 +193,6 @@ void loop() {
   }
 
   // Lecture d'un message envoyé par bluetooth
-  int messageBluetooth = 48;
   if(Serial.available()) {
     messageBluetooth = Serial.read();
     Serial1.print(messageBluetooth);
